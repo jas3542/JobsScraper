@@ -1,10 +1,12 @@
 package org.Scrappers;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
 import org.Constants.WebUrlConstants;
 import org.Models.Job;
+import org.apache.commons.io.FileUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
@@ -14,47 +16,58 @@ public class IndeedScraper {
 
 	public IndeedScraper() {
 	}
-
-	public ArrayList<Job> fetchData(String url) {
+	// TODO Erase Throw.
+	public ArrayList<Job> fetchData(String url) throws IOException {
 		
 		Job job = new Job();
 		Object[] jobLinksUrl;
+		
 		String jobName = "";
 		String jobCompany = "";
 		String jobLocation = "";
 		String jobLink = "";
 		String jobSummary = "";
+		
 		int sizeJobs = 0;
+		int sizeSummary = 0;
 		int sizeCompany = 0;
 		int sizeLocation = 0;
-		int sizeSummary = 0;
-		boolean doScrap = false;
-
+		int sizeJobsUrlLink = 0;
+		
 		if (getStatusCode(url) == 200) {
 			Document document = getHtmlDocument(url);
+			// TODO Erase:
+			/* creates a file with html in EclipseOxigen/
+			File file = new File("html"+url.charAt(29)+url.charAt(30)+".html");
+			FileUtils.writeStringToFile(file, document.outerHtml());
+			*/
 			
 			jobLinksUrl = document.select("[data-tn-element='jobTitle']").eachAttr("href").toArray();
-			
 			sizeJobs = document.select("[data-tn-element='jobTitle']").eachText().size();
+			sizeSummary = document.select("span.summary").eachText().size();
 			sizeCompany = document.select("span.company").eachText().size();
 			sizeLocation = document.select("span.location").eachText().size();
-			sizeSummary = document.select("span.summary").eachText().size();
+			sizeJobsUrlLink = jobLinksUrl.length-1;
 			
-			if (sizeJobs == sizeCompany && sizeJobs == sizeLocation && sizeJobs == sizeSummary &&
-					sizeCompany == sizeLocation && sizeCompany == sizeSummary &&
-					sizeLocation == sizeSummary) {
-				doScrap = true;
-			}
-			
-			if (doScrap) {
+			if (sizeJobs > 0) {
 				for (int i = 0; i < sizeJobs; i++) {
 					job = new Job();
-
+					
+					if (i >= sizeSummary) {
+						jobSummary = "";
+					}else if(i >= sizeCompany) {
+						jobCompany = "";
+					}else if(i >= sizeLocation) {
+						jobLocation = "";
+					}else if ( i >= sizeJobsUrlLink) {
+						jobLink = "";
+					}else {
+						jobSummary = document.select("span.summary").eachText().get(i);
+						jobCompany = document.select("span.company").eachText().get(i);
+						jobLocation = document.select("span.location").eachText().get(i);
+						jobLink = WebUrlConstants.Indeed_URL_IE.concat((String) jobLinksUrl[i]);
+					}
 					jobName = document.select("[data-tn-element='jobTitle']").eachText().get(i);
-					jobSummary = document.select("span.summary").eachText().get(i);
-					jobCompany = document.select("span.company").eachText().get(i);
-					jobLocation = document.select("span.location").eachText().get(i);
-					jobLink = WebUrlConstants.Indeed_URL_IE.concat((String) jobLinksUrl[i]);
 					
 					
 					job.setWebSite(WebUrlConstants.Indeed);
@@ -66,6 +79,7 @@ public class IndeedScraper {
 
 					listJob.add(job);
 				}
+				
 			}
 		}
 

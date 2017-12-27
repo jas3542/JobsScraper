@@ -17,6 +17,7 @@ import org.Utilities.Utility;
 
 public class WebScrapingService implements WebScrapingServiceI {
 
+	// TODO: I'm not scraping all the pages with jobs of today. I need fetch the website pages and do another request for more jobs.
 	@Override
 	public ArrayList<Job> doScrapWeb() {
 
@@ -38,9 +39,8 @@ public class WebScrapingService implements WebScrapingServiceI {
 		
 		while (it.hasNext()) {
 			String key = it.next().toString();
-			String value = urlsMap.get(it.next());
-			// TODO: delete after finishing.
-			//System.out.println("WebScrapingService-> "+ key+ " <> " + value);
+			String value = urlsMap.get(key);
+			
 			if (key.contains(WebUrlConstants.Indeed)) {
 				try {
 					httpIndeed = new HttpRequest(key,value);
@@ -51,6 +51,7 @@ public class WebScrapingService implements WebScrapingServiceI {
 					jobResultList.addAll(futureCall.get());
 				
 					System.out.println("Indeed -> "+key);
+					
 				} catch (InterruptedException | ExecutionException e) {
 					e.printStackTrace();
 				}
@@ -68,6 +69,8 @@ public class WebScrapingService implements WebScrapingServiceI {
 					e.printStackTrace();
 				}
 			}
+			//TODO erase:
+			System.out.println("Total Jobs : "+ jobResultList.size());
 		}
 
 		return jobResultList;

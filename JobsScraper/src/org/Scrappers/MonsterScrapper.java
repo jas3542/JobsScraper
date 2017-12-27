@@ -1,18 +1,19 @@
 package org.Scrappers;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
 
 import org.Constants.WebUrlConstants;
 import org.Models.Job;
+import org.apache.commons.io.FileUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 public class MonsterScrapper {
 	ArrayList<Job> listJob = new ArrayList<Job>();
 
-	public ArrayList<Job> fetchData(String url) {
+	public ArrayList<Job> fetchData(String url) throws IOException {
 
 		Job job = new Job();
 		String jobName = "";
@@ -28,9 +29,15 @@ public class MonsterScrapper {
 		if (getStatusCode(url) == 200) {
 			Document document = getHtmlDocument(url);
 
+			// TODO Erase:
+			/* creates a file with html in EclipseOxigen/
+			File file = new File("html"+url.charAt(38)+".html");
+			FileUtils.writeStringToFile(file, document.outerHtml());
+			*/
+			
 			sizeJobs = document.select("div.jobTitle a span").eachText().size();
 			sizeCompany = document.select("div.company a").eachAttr("title").size();
-			sizeLocation = document.select("div.job-specs.job-specs-location p a").eachAttr("title").size();
+			sizeLocation = document.select("div.job-specs.job-specs-location p").eachText().size();
 			sizeLinkJob = document.select("div.jobTitle a").eachAttr("href").size();
 			
 			if (sizeJobs == sizeCompany && sizeJobs == sizeLocation && sizeJobs == sizeLinkJob &&
@@ -45,7 +52,7 @@ public class MonsterScrapper {
 
 					jobName = document.select("div.jobTitle a span").eachText().get(i);
 					jobCompany = document.select("div.company a").eachAttr("title").get(i);
-					jobLocation = document.select("div.job-specs.job-specs-location p a").eachAttr("title").get(i);
+					jobLocation = document.select("div.job-specs.job-specs-location p").eachText().get(i);
 					jobLink = document.select("div.jobTitle a").eachAttr("href").get(i);
 
 					job.setWebSite(WebUrlConstants.Monster);
@@ -55,21 +62,17 @@ public class MonsterScrapper {
 					job.setPageLink(jobLink);
 
 					listJob.add(job);
-
 				}
+				
 			}
 		}
-
-		// TODO malament. Suma tot de indeed inclos estan el scrapper de Monster.
 		return listJob;
 	}
 
 	private Document getHtmlDocument(String url) {
 		Document doc = new Document("empty");
 		try {
-			System.out.println(new Date() + " <-Temps ARA");
 			doc = Jsoup.connect(url).userAgent("Mozilla/5.0").timeout(30000).get();
-			System.out.println(new Date() + " <-Temps DSP");
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		}
